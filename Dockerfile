@@ -10,6 +10,9 @@ COPY requirements.txt /app
 # RUN apt-get update && apt-get install libgl1  -y
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy the rest of the application code
+COPY . /app
+
 # Make port 12030 available to the world outside this container
 EXPOSE 12030
 
