@@ -3,10 +3,9 @@ name: Build and Push Docker Image
 on:
   push:
     branches:
-      - main
-  pull_request:
-    branches:
-      - main
+      - main  # 根据你的实际情况修改分支名，这里以主分支为例
+  schedule:
+    - cron: '59 23 * * *'  # 每天23点59分执行定时任务
 
 jobs:
   build:
