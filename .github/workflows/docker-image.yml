@@ -41,7 +41,7 @@ jobs:
         push: true
         tags: |
           ${{ secrets.DOCKER_USERNAME }}/minio_cluster_helper:latest
-          ${{ secrets.DOCKER_USERNAME }}/minio_cluster_helper:${{ github.sha }}  # 根据提交哈希生成标签
+          ${{ secrets.DOCKER_USERNAME }}/minio_cluster_helper:${{ github.sha }}
 
     - name: Install Python dependencies
       run: |
