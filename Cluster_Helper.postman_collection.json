@@ -1,0 +1,394 @@
+{
+	"info": {
+		"_postman_id": "b7e8da0e-1ab6-40a9-a904-535460f008c6",
+		"name": "Cluster_Helper",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "37071148"
+	},
+	"item": [
+		{
+			"name": "upload_images",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"bucket_name_list\": [\"Default is storage\"],\n    \"object_name_list\": [\"/path/to/object\"],\n    \"imagedata_list\": [\"base64_imagedata\"],\n    \"tag_list\": [{\"ID\":1}]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "127.0.0.1:12030/upload_images",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "12030",
+					"path": [
+						"upload_images"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "upload_files",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"bucket_name_list\": [\"bucket_name\"],\n    \"object_name_list\": [\"/path/to/object\"],\n    \"filedata_list\": [\"file_data\"],\n    \"tag_list\": [{\"ID\":1}],\n    \"isBase64_list\": [false]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "127.0.0.1:12030/upload_files",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "12030",
+					"path": [
+						"upload_files"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "set_objects_tag",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"bucket_name_list\": [\"bucket_name\"],\n    \"object_name_list\": [\"/path/to/object\"],\n    \"tag_list\": [{\"ID\":1}]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "127.0.0.1:12030/set_objects_tag",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "12030",
+					"path": [
+						"set_objects_tag"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "download_images",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"bucket_name_list\": [\"test\"],\n    \"object_name_list\": [\"job_data/tool001-thumbnails/20240722144242/12_1.jpg\"]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "10.98.12.18:12030/download_images",
+					"host": [
+						"10",
+						"98",
+						"12",
+						"18"
+					],
+					"port": "12030",
+					"path": [
+						"download_images"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "download_folder",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var template = `",
+							"<style type=\"text/css\">",
+							"    .tftable {font-size:14px;color:#333333;width:100%;border-width: 1px;border-color: #87ceeb;border-collapse: collapse;}",
+							"    .tftable th {font-size:18px;background-color:#87ceeb;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;text-align:left;}",
+							"    .tftable tr {background-color:#ffffff;}",
+							"    .tftable td {font-size:14px;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;}",
+							"    .tftable tr:hover {background-color:#e0ffff;}",
+							"</style>",
+							"",
+							"<table class=\"tftable\" border=\"1\">",
+							"    <tr>",
+							"        <th>ADC Class</th>",
+							"        <th>Channel</th>",
+							"        <th>Defect ID</th>",
+							"        <th>Image Name</th>",
+							"        <th>Manual Class</th>",
+							"        <th>X Index</th>",
+							"        <th>X Relative</th>",
+							"        <th>Y Index</th>",
+							"        <th>Y Relative</th>",
+							"    </tr>",
+							"    ",
+							"    {{#each response.tags}}",
+							"        <tr>",
+							"            <td>{{ADCClass}}</td>",
+							"            <td>{{Channel}}</td>",
+							"            <td>{{DefectID}}</td>",
+							"            <td>{{ImageName}}</td>",
+							"            <td>{{ManualClass}}</td>",
+							"            <td>{{XINDEX}}</td>",
+							"            <td>{{XREL}}</td>",
+							"            <td>{{YINDEX}}</td>",
+							"            <td>{{YREL}}</td>",
+							"        </tr>",
+							"    {{/each}}",
+							"</table>",
+							"`;",
+							"",
+							"function constructVisualizerPayload() {",
+							"    return {response: pm.response.json()}",
+							"}",
+							"",
+							"pm.visualizer.set(template, constructVisualizerPayload());"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"bucket_name\": \"test\",\n    \"src_path\": \"20240720_thumb\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "10.98.12.18:12030/download_folder",
+					"host": [
+						"10",
+						"98",
+						"12",
+						"18"
+					],
+					"port": "12030",
+					"path": [
+						"download_folder"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "download_files",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"bucket_name_list\": [\"bucket_name\"],\n    \"object_name_list\": [\"/path/to/object\"],\n    \"isBase64_list\": [false]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "127.0.0.1:12030/download_files",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "12030",
+					"path": [
+						"download_files"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "list_objects",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"bucket_name\": \"test\",\n    \"src_path\": \"/\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "10.98.12.18:12030/list_objects",
+					"host": [
+						"10",
+						"98",
+						"12",
+						"18"
+					],
+					"port": "12030",
+					"path": [
+						"list_objects"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete_files",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"bucket_name_list\": [\"bucket_name\"],\n    \"object_name_list\": [\"/path/to/object\"]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "127.0.0.1:12030/delete_objects",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "12030",
+					"path": [
+						"delete_objects"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete_folder",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"bucket_name\": \"test\",\n    \"src_path\": \"20240720_thumb\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "10.98.12.18:12030/delete_folder",
+					"host": [
+						"10",
+						"98",
+						"12",
+						"18"
+					],
+					"port": "12030",
+					"path": [
+						"delete_folder"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "copy_objects",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"src_bucket_name_list\": [\"bucket_name\"],\n    \"src_object_name_list\": [\"/path/to/file\"],\n    \"dst_bucket_name_list\": [\"bucket_name\"],\n    \"dst_object_name_list\": [\"/path/to/file\"]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "127.0.0.1:12030/copy_objects",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "12030",
+					"path": [
+						"copy_objects"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "generate_folder_thumbnail",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"src_bucket_name\": \"test\",\n    \"src_path\": \"20240720\",\n    \"dst_bucket_name\": \"test\",\n    \"dst_path\": \"20240720_thumb\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "10.98.12.18:12030/generate_folder_thumbnail",
+					"host": [
+						"10",
+						"98",
+						"12",
+						"18"
+					],
+					"port": "12030",
+					"path": [
+						"generate_folder_thumbnail"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
