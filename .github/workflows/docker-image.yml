@@ -1,47 +1,58 @@
 name: Build and Push Docker Image
 
 on:
-  push:
-    branches:
-      - main  # 根据你的实际情况修改分支名，这里以主分支为例
   schedule:
     - cron: '59 23 * * *'  # 每天23点59分执行定时任务
 
 jobs:
-  build:
+  check-commit:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        
+      - name: Check for commits today
+        id: check_commits
+        run: |
+          TODAY=$(date -I)
+          COMMITS=$(git log --since="$TODAY 00:00" --until="$TODAY 23:59" --oneline)
+          echo "::set-output name=has_commits::$([ -n "$COMMITS" ] && echo true || echo false)"
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+  run-if-commits:
+    needs: check-commit
+    if: steps.check_commits.outputs.has_commits == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Login to DockerHub
-      uses: docker/login-action@v2
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-    # 添加缓存步骤以加速Python依赖安装
-    - name: Cache Python dependencies
-      uses: actions/cache@v3
-      with:
-        path: /root/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v4
-      with:
-        context: .
-        push: true
-        tags: |
-          ${{ secrets.DOCKER_USERNAME }}/minio_cluster_helper:latest
-          ${{ secrets.DOCKER_USERNAME }}/minio_cluster_helper:${{ github.sha }}
+      # 添加缓存步骤以加速Python依赖安装
+      - name: Cache Python dependencies
+        uses: actions/cache@v3
+        with:
+          path: /root/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
-    - name: Install Python dependencies
-      run: |
-        docker run --rm -v $(pwd):/app -w /app python:3.11 pip install -r requirements.txt
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/minio_cluster_helper:latest
+            ${{ secrets.DOCKER_USERNAME }}/minio_cluster_helper:${{ github.sha }}
+
+      - name: Install Python dependencies
+        run: |
+          docker run --rm -v $(pwd):/app -w /app python:3.11 pip install -r requirements.txt
