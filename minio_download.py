@@ -2,9 +2,7 @@ from minio import Minio
 from minio.commonconfig import CopySource
 import numpy as np
 import cv2
-import os
-from tqdm import tqdm, trange
-import json
+from tqdm import tqdm
 from loguru import logger
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from config import Config

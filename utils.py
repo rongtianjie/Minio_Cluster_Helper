@@ -1,18 +1,10 @@
 import os, sys
-from flask_jwt_extended import jwt_required
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from config import MySQLConfig
-import ipaddress
-from flask import jsonify, request
 from loguru import logger
 import time, functools
 import cv2
 import base64
 import numpy as np
-import hashlib
-from datetime import timedelta
-import mysql.connector
-from mysql.connector import Error
 
 
 default_log_path = os.path.join(sys.path[0], "log")
@@ -48,38 +40,7 @@ def kill_port(port):
         os.popen(find_kill)
         return True
     else:
-        return False
-
-def get_ip_whitelist():
-    query = "SELECT * FROM erm_db.allowed_ip_table"
-    result = execute_query(query)
-    ip_whitelist = [item[1] for item in result]
-    return ip_whitelist
-    
-
-def ip_in_whitelist(client_ip):
-    ip = ipaddress.ip_address(client_ip)
-    for ip_range in get_ip_whitelist():
-        if ip in ipaddress.ip_network(ip_range):
-            return True
-    return False
-
-def ip_whitelist(f):
-    def wrapper(*args, **kwargs):
-        client_ip = request.remote_addr
-        if not ip_in_whitelist(client_ip):
-            return jsonify({'message': 'Access forbidden: IP address not allowed'}), 403
-        return f(*args, **kwargs)
-    wrapper.__name__ = f.__name__
-    return wrapper
-
-def conditional_jwt(enabled_jwt=False):
-    def decorator_wrapper(func):
-        if enabled_jwt:
-            return jwt_required(func)
-        else:
-            return func
-    return decorator_wrapper
+        return False 
 
 def decode_img(base64_data):
     img_data = base64.b64decode(base64_data)
@@ -98,38 +59,3 @@ def encode_img(img):
 def isImage(fn):
     ext = os.path.splitext(fn)[-1].lower()
     return ext in [".jpg", ".jpeg", ".png", ".bmp", ".webp"]
-
-def execute_query(query):
-    try:
-        config = MySQLConfig()
-        connection = mysql.connector.connect(user=config.user, password=config.password, host=config.host, database=config.database, raise_on_warnings=config.raise_on_warnings)
-        cursor = connection.cursor()
-        cursor.execute(query)
-        result = cursor.fetchall()
-        cursor.close()
-        connection.close()
-    except Error as e:
-        logger.error(f"Error: {e}")
-        raise Exception("Error: Cannot get JWT config")
-    return result
-
-def generate_md5_hash(str):
-    return hashlib.md5(str.encode()).hexdigest()
-
-def get_jwt_config():
-    query = "SELECT * FROM erm_db.jwt_config_table"
-    result = execute_query(query)
-    
-    result_dict = {item[1]: item[2] for item in result}
-    
-    class JWTConfig:
-        def __init__(self):
-            self.SECRET_KEY = generate_md5_hash(result_dict['SECRET_KEY'])
-            
-            self.JWT_SECRET_KEY = generate_md5_hash(result_dict['JWT_SECRET_KEY'])
-            
-            timedelta_str = result_dict['JWT_ACCESS_TOKEN_EXPIRES']
-            k, v = timedelta_str.split('=')
-            self.JWT_ACCESS_TOKEN_EXPIRES = timedelta(**{k: int(v)})
-    
-    return JWTConfig()

@@ -324,7 +324,7 @@ def main():
     else:
         logger.info(f"Start port {port}")
     
-    uvicorn.run("rest_server:app", host="0.0.0.0", port=port, log_level="info")
+    uvicorn.run("rest_server:app", host="0.0.0.0", port=port, log_level="info", reload=True)
 
 if __name__ == '__main__':
     main()

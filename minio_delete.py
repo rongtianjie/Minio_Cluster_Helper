@@ -1,9 +1,5 @@
 from minio import Minio
 from minio.deleteobjects import DeleteObject
-import numpy as np
-import cv2
-import io 
-import os
 from tqdm import tqdm, trange
 from loguru import logger
 from config import Config
