@@ -29,11 +29,17 @@ jobs:
     - name: Cache Python dependencies
       uses: actions/cache@v3
       with:
-        path: /root/.cache/pip
+        path: ~/.cache/pip
         key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
         restore-keys: |
           ${{ runner.os }}-pip-
 
+    - name: Install Python dependencies
+      run: |
+        python -m venv venv
+        . venv/bin/activate
+        pip install -r requirements.txt
+    
     - name: Build and push Docker image
       uses: docker/build-push-action@v4
       with:
@@ -42,7 +48,3 @@ jobs:
         tags: |
           ${{ secrets.DOCKER_USERNAME }}/minio_cluster_helper:latest
           ${{ secrets.DOCKER_USERNAME }}/minio_cluster_helper:${{ github.sha }}
-
-    - name: Install Python dependencies
-      run: |
-        docker run --rm -v $(pwd):/app -w /app python:3.11 pip install -r requirements.txt
