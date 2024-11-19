@@ -1,6 +1,6 @@
-from flask import Flask, request
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 import json
-from waitress import serve
 import os, sys
 import base64
 from minio_upload import *
@@ -9,9 +9,8 @@ from minio_delete import *
 from loguru import logger
 import traceback
 from config import Config
-from flask_jwt_extended import JWTManager
-from utils import conditional_jwt, ip_whitelist, set_log_level, decode_img, encode_img, kill_port, get_jwt_config
-
+import uvicorn
+from utils import set_log_level, decode_img, encode_img, kill_port
 
 # load config
 config = Config()
@@ -21,18 +20,13 @@ os.makedirs(log_path, exist_ok=True)
 
 set_log_level(console_level="DEBUG", file_level="INFO", log_path=log_path)
 
+app = FastAPI()
 
-app = Flask(__name__)
-app.config.from_object(get_jwt_config())
-jwt = JWTManager(app)
-
-@app.route("/upload_images", methods=["POST"])
-@ip_whitelist
-@conditional_jwt(enabled_jwt=config.enable_jwt)
-def upload_images_route():
+@app.post("/upload_images")
+async def upload_images_route(request: Request):
     try:
-        logger.info(f"Uploading images from {request.remote_addr}")
-        data = json.loads(request.get_data().decode())
+        logger.info(f"Uploading images from {request.client.host}")
+        data = await request.json()
         bucket_name_list = data["bucket_name_list"]
         object_name_list = data["object_name_list"]
         image_list = [decode_img(img) for img in data["imagedata_list"]]
@@ -51,15 +45,13 @@ def upload_images_route():
             code = -1,
             message = traceback.format_exc()
         )
-    return response
+    return JSONResponse(content=response)
 
-@app.route("/upload_files", methods=["POST"])
-@ip_whitelist
-@conditional_jwt(enabled_jwt=config.enable_jwt)
-def upload_files_route():
+@app.post("/upload_files")
+async def upload_files_route(request: Request):
     try:
-        logger.info(f"Uploading files from {request.remote_addr}")
-        data = json.loads(request.get_data().decode())
+        logger.info(f"Uploading files from {request.client.host}")
+        data = await request.json()
         bucket_name_list = data.get("bucket_name_list", [])
         object_name_list = data.get("object_name_list", [])
         filedata_list = data.get("filedata_list", [])
@@ -88,16 +80,13 @@ def upload_files_route():
             code = -1,
             message = traceback.format_exc()
         )
-    return response
+    return JSONResponse(content=response)
 
-
-@app.route("/set_objects_tag", methods=["POST"])
-@ip_whitelist
-@conditional_jwt(enabled_jwt=config.enable_jwt)
-def set_objects_tag_route():
+@app.post("/set_objects_tag")
+async def set_objects_tag_route(request: Request):
     try:
-        logger.info(f"/set_objects_tag from {request.remote_addr}")
-        data = json.loads(request.get_data().decode())
+        logger.info(f"/set_objects_tag from {request.client.host}")
+        data = await request.json()
         bucket_name_list = data["bucket_name_list"]
         object_name_list = data["object_name_list"]
         tag_list = data["tag_list"]
@@ -115,16 +104,13 @@ def set_objects_tag_route():
             code = -1,
             message = traceback.format_exc()
         )
-    return response
+    return JSONResponse(content=response)
 
-
-@app.route("/download_images", methods=["POST"])
-@ip_whitelist
-@conditional_jwt(enabled_jwt=config.enable_jwt)
-def download_images_route():
+@app.post("/download_images")
+async def download_images_route(request: Request):
     try:
-        logger.info(f"/download_images from {request.remote_addr}")
-        data = json.loads(request.get_data().decode())
+        logger.info(f"/download_images from {request.client.host}")
+        data = await request.json()
         bucket_name_list = data["bucket_name_list"]
         object_name_list = data["object_name_list"]
         
@@ -149,16 +135,13 @@ def download_images_route():
             message = traceback.format_exc(),
         )
         
-    return response
+    return JSONResponse(content=response)
 
-
-@app.route("/download_folder", methods=["POST"])
-@ip_whitelist
-@conditional_jwt(enabled_jwt=config.enable_jwt)
-def download_folder_route():
+@app.post("/download_folder")
+async def download_folder_route(request: Request):
     try:
-        logger.info(f"/download_folder from {request.remote_addr}")
-        data = json.loads(request.get_data().decode())
+        logger.info(f"/download_folder from {request.client.host}")
+        data = await request.json()
         bucket_name = data["bucket_name"]
         src_path = data["src_path"]
         
@@ -180,16 +163,13 @@ def download_folder_route():
             message = traceback.format_exc()
         )
         
-    return response
+    return JSONResponse(content=response)
 
-
-@app.route("/download_files", methods=["POST"])
-@ip_whitelist
-@conditional_jwt(enabled_jwt=config.enable_jwt)
-def download_files_route():
+@app.post("/download_files")
+async def download_files_route(request: Request):
     try:
-        logger.info(f"/download_files from {request.remote_addr}")
-        data = json.loads(request.get_data().decode())
+        logger.info(f"/download_files from {request.client.host}")
+        data = await request.json()
         bucket_name_list = data["bucket_name_list"]
         object_name_list = data["object_name_list"]
         isBase64_list = data.get("isBase64_list", [True]*len(object_name_list))
@@ -212,18 +192,15 @@ def download_files_route():
             result = []
         )
         
-    return response
+    return JSONResponse(content=response)
 
-
-@app.route("/list_objects", methods=["POST"])
-@ip_whitelist
-@conditional_jwt(enabled_jwt=config.enable_jwt)
-def list_objects_route():
+@app.post("/list_objects")
+async def list_objects_route(request: Request):
     try:
-        data = json.loads(request.get_data().decode())
+        data = await request.json()
         bucket_name = data["bucket_name"]
         src_path = data["src_path"]
-        logger.info(f"List objects on {bucket_name}:{src_path} from {request.remote_addr}")
+        logger.info(f"List objects on {bucket_name}:{src_path} from {request.client.host}")
         
         result = list_objects(bucket_name, src_path)
         
@@ -239,16 +216,13 @@ def list_objects_route():
             code = -1,
             message = traceback.format_exc()
         )
-    return response
+    return JSONResponse(content=response)
 
-
-@app.route("/delete_files", methods=["POST"])
-@ip_whitelist
-@conditional_jwt(enabled_jwt=config.enable_jwt)
-def delete_files_route():
+@app.post("/delete_files")
+async def delete_files_route(request: Request):
     try:
-        logger.info(f"/delete_files from {request.remote_addr}")
-        data = json.loads(request.get_data().decode())
+        logger.info(f"/delete_files from {request.client.host}")
+        data = await request.json()
         bucket_name_list = data["bucket_name_list"]
         object_name_list = data["object_name_list"]
         
@@ -265,16 +239,13 @@ def delete_files_route():
             code = -1,
             message = traceback.format_exc()
         )
-    return response
+    return JSONResponse(content=response)
 
-
-@app.route("/delete_folder", methods=["POST"])
-@ip_whitelist
-@conditional_jwt(enabled_jwt=config.enable_jwt)
-def delete_folder_route():
+@app.post("/delete_folder")
+async def delete_folder_route(request: Request):
     try:
-        logger.info(f"/delete_folder from {request.remote_addr}")
-        data = json.loads(request.get_data().decode())
+        logger.info(f"/delete_folder from {request.client.host}")
+        data = await request.json()
         bucket_name = data["bucket_name"]
         prefix = data["src_path"]
         
@@ -291,16 +262,13 @@ def delete_folder_route():
             code = -1,
             message = traceback.format_exc()
         )
-    return response
+    return JSONResponse(content=response)
 
-
-@app.route("/generate_folder_thumbnail", methods=["POST"])
-@ip_whitelist
-@conditional_jwt(enabled_jwt=config.enable_jwt)
-def generate_folder_thumbnail_route():
+@app.post("/generate_folder_thumbnail")
+async def generate_folder_thumbnail_route(request: Request):
     try:
-        logger.info(f"/generate_thumbnail from {request.remote_addr}")
-        data = json.loads(request.get_data().decode())
+        logger.info(f"/generate_thumbnail from {request.client.host}")
+        data = await request.json()
         src_bucket_name = data["src_bucket_name"]
         src_path = data["src_path"]
         dst_bucket_name = data["dst_bucket_name"]
@@ -320,16 +288,13 @@ def generate_folder_thumbnail_route():
             code = -1,
             message = traceback.format_exc()
         )
-    return response
+    return JSONResponse(content=response)
 
-
-@app.route("/copy_objects", methods=["POST"])
-@ip_whitelist
-@conditional_jwt(enabled_jwt=config.enable_jwt)
-def copy_objects_route():
+@app.post("/copy_objects")
+async def copy_objects_route(request: Request):
     try:
-        logger.info(f"/copy_objects from {request.remote_addr}")
-        data = json.loads(request.get_data().decode())
+        logger.info(f"/copy_objects from {request.client.host}")
+        data = await request.json()
         src_bucket_name_list = data["src_bucket_name_list"]
         src_object_name_list = data["src_object_name_list"]
         dst_bucket_name_list = data["dst_bucket_name_list"]
@@ -348,8 +313,7 @@ def copy_objects_route():
             code = -1,
             message = traceback.format_exc()
         )
-    return response
-
+    return JSONResponse(content=response)
 
 def main():
     port = config.port
@@ -360,9 +324,7 @@ def main():
     else:
         logger.info(f"Start port {port}")
     
-    serve(app, host="0.0.0.0", port=port, max_request_body_size=16*1024*1024*1024, threads=100)
-    
-    
+    uvicorn.run("rest_server:app", host="0.0.0.0", port=port, log_level="info")
+
 if __name__ == '__main__':
     main()
-    

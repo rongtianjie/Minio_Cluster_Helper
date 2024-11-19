@@ -1,9 +1,8 @@
-Flask==2.3.2
-Flask_JWT_Extended==4.6.0
+fastapi==0.115.5
 loguru==0.7.2
 minio==7.2.8
 numpy==1.26.1
 opencv_python_headless==4.10.0.84
 tqdm==4.66.1
-waitress==2.1.2
+uvicorn==0.22.0
 mysql-connector-python==8.4.0
