@@ -1,6 +1,6 @@
 from minio import Minio
 from minio.deleteobjects import DeleteObject
-from tqdm import tqdm, trange
+from tqdm import tqdm
 from loguru import logger
 from config import Config
 
